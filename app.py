@@ -1,15 +1,21 @@
+import numpy as np
+import sqlalchemy
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
-# Dictionary of Justice League
-justice_league_members = [
-    {"superhero": "Aquaman", "real_name": "Arthur Curry"},
-    {"superhero": "Batman", "real_name": "Bruce Wayne"},
-    {"superhero": "Cyborg", "real_name": "Victor Stone"},
-    {"superhero": "Flash", "real_name": "Barry Allen"},
-    {"superhero": "Green Lantern", "real_name": "Hal Jordan"},
-    {"superhero": "Superman", "real_name": "Clark Kent/Kal-El"},
-    {"superhero": "Wonder Woman", "real_name": "Princess Diana"}
-]
+#set up app.py file to read in the climate information
+#Database set up
+engine = create_engine("sqlite:///./Resources/hawaii.sqlite")
+#refelct database into new model 
+Base = automap_base()
+# reflect the tables
+Base.prepare(engine, reflect=True)
+
+# Save reference to the table
+Measurement = Base.classes.measurement
+Station = Base.classes.station
 
 #################################################
 # Flask Setup
@@ -38,19 +44,52 @@ def Welcome():
 # Pretty print the data
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-   return "Precipitation"
+   # Create session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a list of precipitation values using the date as the key"""
+    # Query all measurements 
+    results = session.query(Measurement.date, Measurement.prcp).all()
+
+    session.close()
+
+    # Create a dictionary using the data in results and append to a list of all_data
+    #The list holds all passengers
+    all_data = []
+    for date, prcp in results:
+        #create an object for each individual passenger
+        prec_dict = {}
+        prec_dict[date] = prcp
+        #prec_dict["prcp"] = prcp
+        all_data.append(prec_dict)
+
+    return jsonify(all_data)
     
 @app.route("/api/v1.0/stations")
 def stations():
-    return "Stations"
+     # Create session from Python to the DB
+    session = Session(engine)
 
-@app.route("/api/v1.0/tobs/<tobs>")
+    """Return a list of all station names"""
+    # Query all stations
+    results = session.query(Station.name).all()
+
+    session.close()
+
+    # Convert list of tuples into normal list
+    #The ravel function flattens an array(list of lists into one list)
+    #from [[1],[2],[3]] to [1, 2, 3]
+    all_names = list(np.ravel(results))
+
+    return jsonify(all_names)
+
+@app.route("/api/v1.0/tobs")
 def tobs():
-    return stations(justice_league_members)
+    
 
 @app.route("/api/v1.0/<start>/<end>")
 def temp_stats():
-    return temp_stats(justice_league_members)
+    
 
 #Boilerplate 
 if __name__ == "__main__":
