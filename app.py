@@ -125,11 +125,17 @@ def by_date(start):
 
     session.close()
 
-   
-    #temps = [max_temp[0][0],min_temp[0][0],avg_temp[0][0]]
-    temps = list(np.ravel(results))
-      
-    return jsonify(temps)
+    #return jsonify(temps)
+    all_data = []
+    for max, min, avg in results:
+        #create an object for each individual passenger
+        temp_dict = {}
+        temp_dict["TMAX"] = max
+        temp_dict["TMIN"] = min
+        temp_dict["TAVG"] = avg
+        all_data.append(temp_dict)
+
+    return jsonify(all_data)
 
 # When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates from the start date through the end date (inclusive).
 
@@ -144,9 +150,17 @@ def date_range(start,end):
     
     session.close()
 
-    all_temps = list(np.ravel(results))
-    
-    return (all_temps)
+    #return jsonify(temps)
+    all_data = []
+    for max, min, avg in results:
+        #create an object for each individual passenger
+        temp_dict = {}
+        temp_dict["TMAX"] = max
+        temp_dict["TMIN"] = min
+        temp_dict["TAVG"] = avg
+        all_data.append(temp_dict)
+
+    return jsonify(all_data)
 
 #Boilerplate 
 if __name__ == "__main__":
